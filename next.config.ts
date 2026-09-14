@@ -1,0 +1,17 @@
+import type { NextConfig } from "next";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+
+const nextConfig: NextConfig = {
+  distDir: process.env.NODE_ENV === "development" ? ".next-dev" : ".next",
+  poweredByHeader: false,
+  devIndicators: false,
+  outputFileTracingRoot: currentDir,
+  experimental: {
+    optimizePackageImports: ["lucide-react"]
+  }
+};
+
+export default nextConfig;

@@ -1,0 +1,14 @@
+.next
+.next-dev
+node_modules
+out
+.env
+.env.local
+.env.*.local
+coverage
+.DS_Store
+.insforge/
+.playwright-cli/
+*.tsbuildinfo
+.env.*
+!.env.example

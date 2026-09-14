@@ -1,0 +1,2 @@
+[auth]
+allowed_redirect_urls = ["http://localhost:5173", "http://localhost:3000", "http://localhost:3000/api/auth/callback", "https://mwxmfz47.insforge.site", "https://mwxmfz47.insforge.site/api/auth/callback", "https://mwxmfz47.insforge.site/login?verified=true"]

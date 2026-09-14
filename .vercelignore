@@ -1,0 +1,5 @@
+.next-dev/
+coverage/
+tests/
+*.tsbuildinfo
+.playwright-cli/
