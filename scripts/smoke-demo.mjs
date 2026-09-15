@@ -17,6 +17,17 @@ async function visitor() {
 
 const first = await visitor();
 const second = await visitor();
+const followups = await first("followups");
+for (const item of followups) await first(`threads/${item.threadId}/draft`, "POST", { intent: "follow-up", tone: "normal" });
+const followupId = followups[0].id;
+await first(`followups/${followupId}`, "PATCH", { operation: "snooze", days: 3 });
+assert.equal((await first("followups")).some(f => f.id === followupId), false);
+assert.equal((await first("followups?status=scheduled")).some(f => f.id === followupId), true);
+assert.equal((await second("followups")).some(f => f.id === followupId), true);
+await first(`followups/${followupId}`, "PATCH", { operation: "dismiss" });
+assert.equal((await first("followups?status=dismissed")).some(f => f.id === followupId), true);
+await first(`followups/${followupId}`, "PATCH", { operation: "restore" });
+assert.equal((await first("followups")).some(f => f.id === followupId), true);
 await first("commitments/commitment_deck", "PATCH", { status: "completed" });
 assert.equal((await first("commitments")).find(c => c.id === "commitment_deck").status, "completed");
 assert.equal((await second("commitments")).find(c => c.id === "commitment_deck").status, "open");
@@ -33,4 +44,4 @@ const denied = await fetch(`${origin}/api/demo/today`);
 assert.equal(denied.status, 401);
 const csrf = await fetch(`${origin}/api/demo/auth/demo-login`, { method: "POST", headers: { origin: "https://invalid.example" } });
 assert.equal(csrf.status, 403);
-console.log("PASS: demo persistence, visitor isolation, draft edits, idempotent approval, citations, auth and origin checks.");
+console.log("PASS: demo persistence, follow-up snooze/dismiss/restore, source drafts, visitor isolation, draft edits, idempotent approval, citations, auth and origin checks.");

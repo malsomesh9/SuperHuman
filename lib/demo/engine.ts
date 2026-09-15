@@ -3,7 +3,7 @@ import * as seed from "@/lib/api/demo-data";
 import type { SmartAction, Thread } from "@/types/domain";
 
 export function initialState() {
-  return structuredClone({ commitments: seed.demoCommitments, actions: seed.demoActions, workflows: seed.demoWorkflows, audit: seed.demoAudit });
+  return structuredClone({ commitments: seed.demoCommitments, actions: seed.demoActions, workflows: seed.demoWorkflows, audit: seed.demoAudit, followups: seed.demoFollowups });
 }
 export type DemoState = ReturnType<typeof initialState>;
 export class DemoError extends Error {
@@ -15,7 +15,7 @@ function threads(state: DemoState) {
     id: email.threadId, subject: email.subject, latestMessageAt: email.receivedAt,
     messageCount: 1, summary: email.snippet, priority: "high", requiresAction: !email.isRead,
     emails: [email], commitments: state.commitments.filter(c => c.threadId === email.threadId),
-    followUps: seed.demoFollowups.filter(f => f.threadId === email.threadId)
+    followUps: state.followups.filter(f => f.threadId === email.threadId)
   } satisfies Thread));
 }
 function record(state: DemoState, action: string, id: string) {
@@ -24,16 +24,19 @@ function record(state: DemoState, action: string, id: string) {
 }
 
 export function execute(state: DemoState, method: string, path: string, body: unknown, status?: string | null): unknown {
+  // Sessions created before follow-up persistence remain valid until expiry.
+  state.followups ??= structuredClone(seed.demoFollowups);
+  const dueFollowups = state.followups.filter(f => f.status === "suggested" || (f.status === "scheduled" && !!f.scheduledFor && Date.parse(f.scheduledFor) <= Date.now()));
   const parts = path.split("/").filter(Boolean);
   if (method === "GET") {
     const active = state.commitments.filter(c => !["completed", "dismissed", "cancelled"].includes(c.status));
-    const items = { dueToday: active.filter(c => c.id === "commitment_deck"), overdue: active.filter(c => c.status === "overdue"), waiting: active.filter(c => c.ownerType === "other"), followups: seed.demoFollowups, importantUnread: seed.demoEmails.filter(e => !e.isRead) };
+    const items = { dueToday: active.filter(c => c.id === "commitment_deck"), overdue: active.filter(c => c.status === "overdue"), waiting: active.filter(c => c.ownerType === "other"), followups: dueFollowups, importantUnread: seed.demoEmails.filter(e => !e.isRead) };
     const today = { date: new Date().toISOString().slice(0, 10), items, summary: Object.fromEntries(Object.entries(items).map(([key, value]) => [key, value.length])) };
     const catalog: Record<string, unknown> = {
       health: { status: "ok" },
       me: seed.demoUser, today, commitments: status ? state.commitments.filter(c => c.status === status) : state.commitments,
       actions: state.actions, workflows: state.workflows, audit: state.audit,
-      emails: { data: seed.demoEmails }, threads: { data: threads(state) }, followups: seed.demoFollowups,
+      emails: { data: seed.demoEmails }, threads: { data: threads(state) }, followups: status ? state.followups.filter(f => f.status === status) : dueFollowups,
       people: seed.demoPeople, projects: seed.demoProjects, decisions: seed.demoDecisions,
       connectors: seed.demoConnectors, policies: seed.demoPolicies, companies: seed.demoCompanies,
       conflicts: seed.demoConflicts, "smart-attachments": seed.demoSmartAttachments,
@@ -42,6 +45,18 @@ export function execute(state: DemoState, method: string, path: string, body: un
     };
     if (parts[0] === "threads" && parts[1]) return threads(state).find(t => t.id === parts[1]) ?? missing();
     return catalog[path] ?? missing();
+  }
+  if (method === "PATCH" && parts[0] === "followups" && parts.length === 2) {
+    const input = z.discriminatedUnion("operation", [
+      z.object({ operation: z.literal("snooze"), days: z.union([z.literal(1), z.literal(3), z.literal(7)]) }).strict(),
+      z.object({ operation: z.literal("dismiss") }).strict(),
+      z.object({ operation: z.literal("restore") }).strict()
+    ]).parse(body);
+    const item = state.followups.find(f => f.id === parts[1]) ?? missing();
+    item.status = input.operation === "snooze" ? "scheduled" : input.operation === "dismiss" ? "dismissed" : "suggested";
+    item.scheduledFor = input.operation === "snooze" ? new Date(Date.now() + input.days * 86400000).toISOString() : null;
+    record(state, `followup.${input.operation}`, item.id);
+    return item;
   }
   if (method === "PATCH" && parts[0] === "commitments" && parts.length === 2) {
     const patch = z.object({ status: z.enum(["detected", "open", "in_progress", "waiting", "completed", "overdue", "cancelled", "dismissed"]).optional(), action: z.string().min(1).max(300).optional(), deadline: z.string().datetime({ offset: true }).nullable().optional(), requiresConfirmation: z.boolean().optional() }).strict().parse(body);

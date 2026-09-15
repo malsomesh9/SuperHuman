@@ -78,7 +78,7 @@ export default function TodayPage() {
               {today.data.items.waiting.map((item) => <WaitingRow key={item.id} item={item} onOpen={setSelected} onDraft={(next) => setComposerThread(next.threadId)} />)}
             </Section>
             <Section title="Follow-ups">
-              {today.data.items.followups.map((item: FollowUp) => <FollowupRow key={item.id} followup={item} onDraft={(next) => setComposerThread(next.threadId)} onDismiss={() => toast.success("Follow-up moved to later")} />)}
+              {today.data.items.followups.map((item: FollowUp) => <FollowupRow key={item.id} followup={item} onDraft={(next) => setComposerThread(next.threadId)} />)}
             </Section>
             <Section title="Important unread">
               {today.data.items.importantUnread.map((email) => <ThreadPreview key={email.id} email={email} />)}

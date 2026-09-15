@@ -13,6 +13,8 @@ reply, review it, and close the loop.
 4. Open Approvals or Activity to inspect the saved action.
 5. Complete a commitment, refresh, and confirm the change persists.
 6. Search for Acme and follow a source to its thread.
+7. Snooze a follow-up for 24 hours, 3 days, or a week. Find it under Scheduled;
+   dismissed follow-ups can be restored from the Dismissed view.
 
 Demo sessions use server-only InsForge storage and random HttpOnly cookies.
 Visitors have separate state and access expires after 24 hours. Expired rows are

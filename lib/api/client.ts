@@ -124,8 +124,12 @@ export class ApiClient {
     return this.request<Commitment>(`/commitments/${id}`, { method: "PATCH", body: JSON.stringify(data) });
   }
 
-  async followups() {
-    return this.safe(() => this.request<FollowUp[]>("/followups"), demoFollowups);
+  async followups(status?: "scheduled" | "dismissed") {
+    return this.safe(() => this.request<FollowUp[]>(`/followups${status ? `?status=${status}` : ""}`), demoFollowups);
+  }
+
+  async updateFollowup(id: string, input: { operation: "snooze"; days: 1 | 3 | 7 } | { operation: "dismiss" | "restore" }) {
+    return this.request<FollowUp>(`/followups/${id}`, { method: "PATCH", body: JSON.stringify(input) });
   }
 
   async people() {

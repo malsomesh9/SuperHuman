@@ -1,8 +1,31 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { execute, initialState } from "@/lib/demo/engine";
-import type { SmartAction, SearchResponse } from "@/types/domain";
+import type { SmartAction, SearchResponse, FollowUp } from "@/types/domain";
+afterEach(() => vi.useRealTimers());
 
 describe("isolated live demo", () => {
+  it("snoozes, reappears when due, dismisses and restores without affecting another visitor", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-15T10:00:00Z"));
+    const state = initialState(), other = initialState();
+    const list = () => execute(state, "GET", "followups", {}) as FollowUp[];
+    execute(state, "PATCH", "followups/followup_acme", { operation: "snooze", days: 3 });
+    expect(list().some(f => f.id === "followup_acme")).toBe(false);
+    expect((execute(other, "GET", "followups", {}) as FollowUp[]).some(f => f.id === "followup_acme")).toBe(true);
+    vi.setSystemTime(new Date("2026-09-18T10:00:00Z"));
+    expect(list().some(f => f.id === "followup_acme")).toBe(true);
+    execute(state, "PATCH", "followups/followup_acme", { operation: "dismiss" });
+    expect(list().some(f => f.id === "followup_acme")).toBe(false);
+    execute(state, "PATCH", "followups/followup_acme", { operation: "restore" });
+    expect(list().some(f => f.id === "followup_acme")).toBe(true);
+  });
+  it("supports legacy sessions and drafts every follow-up source", () => {
+    const state = initialState();
+    Reflect.deleteProperty(state, "followups");
+    const items = execute(state, "GET", "followups", {}) as FollowUp[];
+    for (const item of items) expect(execute(state, "POST", `threads/${item.threadId}/draft`, { intent: "follow-up", tone: "normal" })).toHaveProperty("draft");
+    expect(() => execute(state, "PATCH", "followups/followup_acme", { operation: "snooze", days: -1 })).toThrow();
+  });
   it("does not mutate another visitor's state", () => {
     const first = initialState(), second = initialState();
     execute(first, "PATCH", "commitments/commitment_deck", { status: "completed" });

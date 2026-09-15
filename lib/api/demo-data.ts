@@ -69,6 +69,13 @@ export const demoEmails: Email[] = [
     importance: "normal",
     isRead: true,
     labels: ["hiring"]
+  },
+  {
+    id: "email_invoice", threadId: "thread_invoice", subject: "Invoice approval",
+    fromEmail: "rahul@eventseal.example", fromName: "Rahul Mehta",
+    snippet: "Finance is waiting on your approval for the August invoice.",
+    normalizedText: "Hi Somesh,\n\nFinance is waiting on your approval for the August invoice. Could you review it and share an update?\n\nRahul",
+    receivedAt: "2026-09-04T12:00:00Z", importance: "normal", isRead: true, labels: ["finance"]
   }
 ];
 
