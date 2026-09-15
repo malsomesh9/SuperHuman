@@ -58,7 +58,7 @@ export default function TodayPage() {
         title="Today"
         summary={`${attention || 5} things need your attention - ${format(new Date(), "EEEE, MMMM d")}`}
       />
-      <div className="mx-auto grid max-w-6xl gap-6 p-4 lg:p-8">
+      <div className="mx-auto grid min-w-0 max-w-6xl grid-cols-1 gap-6 p-4 lg:p-8">
         {today.isLoading ? <SkeletonList rows={10} /> : null}
         {today.isError ? <ErrorState title="Today could not load." body="Your backend may be offline. Demo mode will keep seeded data available when enabled." onRetry={() => void today.refetch()} /> : null}
         {today.data ? (

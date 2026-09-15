@@ -16,7 +16,7 @@ export function DailyBriefCard({ brief }: { brief: DailyBrief }) {
   ] as const;
 
   return (
-    <section className="rounded-md border border-border bg-surface p-4">
+    <section className="min-w-0 rounded-md border border-border bg-surface p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -25,9 +25,9 @@ export function DailyBriefCard({ brief }: { brief: DailyBrief }) {
           </div>
           <h2 className="mt-2 text-base font-semibold">{brief.headline}</h2>
         </div>
-        <div className="grid grid-cols-5 gap-2 text-center">
+        <div className="grid w-full grid-cols-5 gap-1 text-center sm:w-auto sm:gap-2">
           {metrics.map(([label, value]) => (
-            <div key={label} className="min-w-14 rounded-md border border-border bg-background px-2 py-1.5">
+            <div key={label} className="min-w-0 rounded-md border border-border bg-background px-1 py-1.5 sm:min-w-14 sm:px-2">
               <div className="text-sm font-semibold">{value}</div>
               <div className="text-[11px] text-muted-foreground">{label}</div>
             </div>

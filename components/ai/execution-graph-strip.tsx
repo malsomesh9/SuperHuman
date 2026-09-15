@@ -15,7 +15,7 @@ const kindTone = {
 
 export function ExecutionGraphStrip({ graph }: { graph: ExecutionGraphResponse }) {
   return (
-    <section className="rounded-md border border-border bg-surface p-4">
+    <section className="min-w-0 rounded-md border border-border bg-surface p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold">Execution graph</h2>
