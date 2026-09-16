@@ -3,7 +3,7 @@
 An email execution prototype: understand commitments, inspect sources, prepare a
 reply, review it, and close the loop.
 
-**[Open the live demo](https://mwxmfz47.insforge.site/login)** and choose **Demo account**.
+**[Open the live demo](https://pjk648me.insforge.site/login)** and choose **Demo account**.
 
 ## Demo walkthrough
 
@@ -94,4 +94,5 @@ npx -y @insforge/cli deployments deploy .
 Set InsForge auth redirect allowlists for the deployed origin. For a new backend,
 apply `migrations/` SQL files in chronological order before enabling demo/Gmail.
 GitHub CI verifies tests, lint, and build; it does not automatically deploy or
-hold backend secrets. The live deployment is managed through InsForge.
+hold backend secrets. The live deployment is managed through the
+`smartemail-production` InsForge project at `https://pjk648me.insforge.site`.
